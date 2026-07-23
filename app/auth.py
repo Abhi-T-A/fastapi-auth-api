@@ -1,6 +1,7 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from app.supabase_client import supabase
 from app.schemas import SignUpRequest, LoginRequest
+from app.dependencies import get_current_user
 
 router = APIRouter(
     prefix="/auth",
@@ -86,4 +87,16 @@ def login(request: LoginRequest):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail={"error": "Invalid login credentials"}
+        )
+
+
+@router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
+def logout(current_user=Depends(get_current_user)):
+    try:
+        supabase.auth.sign_out()
+        return None
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={"error": f"Logout failed: {str(e)}"}
         )
