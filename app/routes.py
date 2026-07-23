@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Request, HTTPException, status
-from fastapi.responses import JSONResponse
+from app.supabase_client import supabase
 
 public_router = APIRouter(
     prefix="/public",
@@ -18,7 +18,7 @@ def public_info():
 
 
 @protected_router.get("/profile", status_code=status.HTTP_200_OK)
-def protected_profile_stage2(request: Request):
+def protected_profile_stage3(request: Request):
     auth_header = request.headers.get("Authorization")
     
     if not auth_header or not auth_header.startswith("Bearer "):
@@ -34,5 +34,26 @@ def protected_profile_stage2(request: Request):
             detail={"error": "Access token required"}
         )
 
-    # For Stage 2, unverified check passes token extraction
-    return {"message": "Access token provided (unverified in Stage 2)", "token": token}
+    try:
+        user_response = supabase.auth.get_user(token)
+        if not user_response or not user_response.user:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail={"error": "Invalid or expired token"}
+            )
+        
+        user = user_response.user
+        return {
+            "id": user.id,
+            "email": user.email,
+            "created_at": str(user.created_at) if hasattr(user, "created_at") else None,
+            "role": getattr(user, "role", "authenticated")
+        }
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail={"error": "Invalid or expired token"}
+        )
+
