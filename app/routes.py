@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, status
 from app.dependencies import get_current_user
+from app.schemas import ErrorResponse
 
 public_router = APIRouter(
     prefix="/public",
@@ -12,12 +13,24 @@ protected_router = APIRouter(
 )
 
 
-@public_router.get("/info", status_code=status.HTTP_200_OK)
+@public_router.get(
+    "/info",
+    status_code=status.HTTP_200_OK,
+    summary="Read public, unprotected data"
+)
 def public_info():
     return {"message": "Welcome stranger! This info is public."}
 
 
-@protected_router.get("/profile", status_code=status.HTTP_200_OK)
+@protected_router.get(
+    "/profile",
+    status_code=status.HTTP_200_OK,
+    responses={
+        200: {"description": "Returns private user profile data"},
+        401: {"model": ErrorResponse, "description": "Access token required or invalid/expired token"}
+    },
+    summary="Read private user profile data"
+)
 def get_profile(current_user=Depends(get_current_user)):
     return {
         "id": current_user.id,
@@ -27,12 +40,21 @@ def get_profile(current_user=Depends(get_current_user)):
     }
 
 
-@protected_router.get("/dashboard", status_code=status.HTTP_200_OK)
+@protected_router.get(
+    "/dashboard",
+    status_code=status.HTTP_200_OK,
+    responses={
+        200: {"description": "Returns protected user dashboard data"},
+        401: {"model": ErrorResponse, "description": "Access token required or invalid/expired token"}
+    },
+    summary="Read protected user dashboard"
+)
 def get_dashboard(current_user=Depends(get_current_user)):
     return {
         "message": "Welcome to your protected dashboard!",
         "user_id": current_user.id,
         "email": current_user.email
     }
+
 
 

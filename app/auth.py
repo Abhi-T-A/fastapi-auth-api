@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from app.supabase_client import supabase
-from app.schemas import SignUpRequest, LoginRequest
+from app.schemas import SignUpRequest, LoginRequest, AuthResponse, ErrorResponse
 from app.dependencies import get_current_user
 
 router = APIRouter(
@@ -9,7 +9,16 @@ router = APIRouter(
 )
 
 
-@router.post("/signup", status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/signup",
+    status_code=status.HTTP_201_CREATED,
+    response_model=AuthResponse,
+    responses={
+        201: {"description": "User account created successfully"},
+        400: {"model": ErrorResponse, "description": "Bad request / missing parameters / user already exists"}
+    },
+    summary="Create a new user account"
+)
 def signup(request: SignUpRequest):
     if not request.email or not request.password:
         raise HTTPException(
@@ -49,7 +58,17 @@ def signup(request: SignUpRequest):
         )
 
 
-@router.post("/login", status_code=status.HTTP_200_OK)
+@router.post(
+    "/login",
+    status_code=status.HTTP_200_OK,
+    response_model=AuthResponse,
+    responses={
+        200: {"description": "Login successful, returns JWT tokens"},
+        400: {"model": ErrorResponse, "description": "Missing credentials"},
+        401: {"model": ErrorResponse, "description": "Invalid login credentials"}
+    },
+    summary="Authenticate user and return JWT access token"
+)
 def login(request: LoginRequest):
     if not request.email or not request.password:
         raise HTTPException(
@@ -90,7 +109,15 @@ def login(request: LoginRequest):
         )
 
 
-@router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
+@router.post(
+    "/logout",
+    status_code=status.HTTP_204_NO_CONTENT,
+    responses={
+        204: {"description": "Logout successful"},
+        401: {"model": ErrorResponse, "description": "Unauthorized / missing token"}
+    },
+    summary="Terminate the user session"
+)
 def logout(current_user=Depends(get_current_user)):
     try:
         supabase.auth.sign_out()
