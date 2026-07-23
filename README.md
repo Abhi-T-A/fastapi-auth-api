@@ -7,6 +7,7 @@ A production-ready, secure RESTful API built with **FastAPI** and **Supabase Aut
 ## 📐 Architecture & Security Model
 
 Authentication follows the **Trust Triangle** paradigm:
+
 1. **Sign Up & Log In**: Clients send credentials to Supabase IdP via `/auth/signup` and `/auth/login`.
 2. **Token Issuance**: Supabase validates credentials and issues a cryptographically signed JSON Web Token (JWT access token).
 3. **Protected Requests**: The client includes `Authorization: Bearer <JWT>` in HTTP request headers.
@@ -16,7 +17,7 @@ Authentication follows the **Trust Triangle** paradigm:
 
 ## 📁 Project Structure
 
-```
+```text
 fastapi-auth-api/
 │
 ├── app/
@@ -47,12 +48,14 @@ fastapi-auth-api/
 ## ⚡ Quick Start & Setup
 
 ### 1. Clone the repository
+
 ```bash
 git clone <your-repository-url>
 cd fastapi-auth-api
 ```
 
 ### 2. Create and activate a virtual environment
+
 ```bash
 # Windows
 python -m venv .venv
@@ -64,11 +67,13 @@ source .venv/bin/activate
 ```
 
 ### 3. Install dependencies
+
 ```bash
 pip install -r requirements.txt
 ```
 
 ### 4. Configure Environment Variables
+
 Copy `.env.example` to `.env` and fill in your Supabase Project URL and Anon Key:
 
 ```bash
@@ -81,9 +86,11 @@ SUPABASE_KEY=your-supabase-anon-key
 ```
 
 ### 5. Run the Server
+
 ```bash
 uvicorn app.main:app --reload
 ```
+
 The API server will start locally at **`http://127.0.0.1:8000`**.
 
 ---
@@ -101,7 +108,7 @@ python -m pytest -v
 ## 📋 API Reference Table
 
 | Method | Endpoint | Description | Auth Required | Success Status | Error Statuses |
-|---|---|---|---|---|---|
+| --- | --- | --- | --- | --- | --- |
 | `GET` | `/` | Health check endpoint | No | `200 OK` | - |
 | `GET` | `/public/info` | Public info accessible to everyone | No | `200 OK` | - |
 | `POST` | `/auth/signup` | Register a new user account | No | `201 Created` | `400 Bad Request` |
@@ -127,7 +134,9 @@ FastAPI automatically serves interactive API documentation at **`http://127.0.0.
 ## 🤖 Bonus Stage 7: AI vs Me Analysis
 
 ### Comparison Overview
+
 When comparing custom hand-crafted implementation against AI generation:
+
 1. **Header Parsing & Bearer Prefix**:
    - *Manual / Hand-crafted*: Extracted via `HTTPBearer(auto_error=False)` or explicit string splitting (`Authorization: Bearer <token>`).
    - *AI Traps*: AI assistants often forget `auto_error=False`, resulting in default FastAPI 422 or generic 403 responses instead of the exact 401 `{"error": "Access token required"}` required by standard client specs.
